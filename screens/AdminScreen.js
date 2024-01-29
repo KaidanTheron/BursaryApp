@@ -22,11 +22,11 @@ export default function AdminScreen() {
             <Text>
                 Admin Page
             </Text>
-            <TouchableOpacity className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-[5rem] px-4 rounded ml-4 mt-4">
+            <TouchableOpacity className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-[5rem] px-4 rounded ml-4 mt-4" onPress={()=> navigation.navigate("Add")}>
                  <Text>ADD BURSARY</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-[5rem] px-4 rounded ml-4 mt-4">
+            <TouchableOpacity className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-[5rem] px-4 rounded ml-4 mt-4" onPress={()=> navigation.navigate("Bursaries")}>
                  <Text>VIEW BURSARIES</Text>
             </TouchableOpacity>
 

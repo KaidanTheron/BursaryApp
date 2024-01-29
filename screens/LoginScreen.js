@@ -4,9 +4,44 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import back from 'react-native-vector-icons/AntDesign'
 import { themeColors } from '../theme'
 import { useNavigation } from '@react-navigation/native'
+import { useState } from 'react'
+import { db } from "../database"
 
 export default function LoginScreen() {
   const navigation = useNavigation();
+
+  const login = (testEmail, testPassword) => {
+    getAdmin(testEmail, testPassword);
+  }
+
+  const getAdmin = (testEmail, testPassword) => {
+    console.log(testEmail + testPassword);
+    db.transaction((tx) => {
+      console.log("in")
+      tx.executeSql(
+        'SELECT * FROM Admin WHERE email = ?',
+        [testEmail],
+        (tx, results) => {
+          if (results.rows.length > 0) {
+            const password = results.rows.item(0).password;
+            console.log(password)
+            if (password === testPassword) {
+              console.log("Successs")
+              navigation.navigate("Admin");
+            } else {
+              console.log("Fail")
+            }
+          } else {
+            console.log("User not found")
+          }
+        }
+      )
+    })
+  }; 
+  
+  const [testEmail, setTestEmail] = useState('admin@gmail.com');
+  const [testPassword, setTestPassword] = useState('admin123');
+
   return (
     <View className="flex-1 bg-white" style={{backgroundColor: themeColors.bg}}>
       <SafeAreaView  className="flex ">
@@ -31,20 +66,22 @@ export default function LoginScreen() {
             <TextInput 
               className="p-4 bg-gray-100 text-gray-700 rounded-2xl mb-3"
               placeholder="email"
-              value="john@gmail.com" 
+              value={testEmail}
+              onChangeText={testEmail => setTestEmail(testEmail)} 
             />
             <Text className="text-gray-700 ml-4">Password</Text>
             <TextInput 
               className="p-4 bg-gray-100 text-gray-700 rounded-2xl"
               secureTextEntry
               placeholder="password"
-              value="test12345" 
+              value={testPassword}
+              onChangeText={testPassword => setTestPassword(testPassword)}  
             />
             <TouchableOpacity className="flex items-end">
               <Text className="text-gray-700 mb-5">Forgot Password?</Text>
             </TouchableOpacity>
             <TouchableOpacity 
-              className="py-3 bg-yellow-400 rounded-xl" onPress={()=> navigation.navigate("Admin")}>
+              className="py-3 bg-yellow-400 rounded-xl" onPress={()=> login(testEmail, testPassword)}>
                 <Text 
                     className="text-xl font-bold text-center text-gray-700"
                 >

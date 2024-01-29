@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import back from 'react-native-vector-icons/AntDesign'
 import { themeColors } from '../theme'
 import { useNavigation } from '@react-navigation/native'
+import { db } from '../database'
 
 export default function AdminScreen() {
   const navigation = useNavigation();
