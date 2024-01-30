@@ -11,6 +11,20 @@ export default function LoginScreen() {
   const navigation = useNavigation();
 
   const login = (testEmail, testPassword) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        'SELECT * FROM ADMIN',
+        [],
+        (tx, results) => {
+          for (let i = 0; i < results.rows.length; i++) {
+            console.log(results.rows.item(i).email + ' ' + results.rows.item(i).password);
+          }
+        },
+        (error) => {
+          console.error('Error fetching bursary records:', error);
+        }
+      );
+    });
     getAdmin(testEmail, testPassword);
   }
 
@@ -19,7 +33,7 @@ export default function LoginScreen() {
     db.transaction((tx) => {
       console.log("in")
       tx.executeSql(
-        'SELECT * FROM Admin WHERE email = ?',
+        'SELECT * FROM ADMIN WHERE email = ?',
         [testEmail],
         (tx, results) => {
           if (results.rows.length > 0) {
