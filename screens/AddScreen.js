@@ -67,18 +67,52 @@ async function sendEmail(content) {
   });
 }
 
-// add bursary to database and therefore notify students
+// add bursary to database and notify students
 async function addBursary(bursor, bName, detail, criteria, level, bDate, eDate) {
+  const bursary = {
+    criteria: criteria, 
+    level: level, 
+    bName: bName, 
+    bursor: bursor, 
+    detail: detail, 
+    sDate: bDate,
+    eDate: eDate
+  }
+
+  const bursaryStringObject = createBursaryStringObject(bursary);
+
   db.transaction((tx) => {
-    tx.executeSql('SELECT * FROM BURSARIES'),
+    tx.executeSql('INSERT INTO BURSARIES (bursor, name, detail, criteria, level, BEGINDATE, ENDDATE',
+    [bursor, bName, detail, criteria, level, bDate, eDate],
+    (error) => {
+      console.log('Error inserting bursary record:\n ', error);
+    })
+  });
+
+  db.transaction((tx) => {
+    tx.executeSql('SELECT * FROM STUDENTS'),
     [],
     (tx, results) => {
-      
+      for (let i = 0; i < results.rows.length; i++) {
+        const sName = results.rows.item(i).name;
+        const sEmail = results.rows.item(i).email;
+        const sCriteria = results.rows.item(i).criteria;
+        const sLevel = results.rows.item(i).level;
+
+        if (sLevel == level && sCriteria == criteria) {
+          const student = {
+            email: sEmail,
+            name: sName
+          }
+
+          sendEmail(createContent(createStudentStringObject(student), bursaryStringObject));
+        }
+      }
     }
-  })
+  });
 }
 
-// right function to read spreadsheet once selected here
+// write function to read spreadsheet once selected here
 async function readSpreadsheet() {
 
 }
@@ -88,7 +122,7 @@ export default function AddScreen() {
   return (
     <View className="flex-1 bg-white " >
       <SafeAreaView  className="flex ">
-      <View className="flex-row justify-start">
+        <View className="flex-row justify-start">
           <TouchableOpacity  onPress={()=> navigation.goBack()}
           className="bg-yellow-400 p-2 rounded-tr-2xl rounded-bl-2xl ml-4">
             
@@ -98,30 +132,6 @@ export default function AddScreen() {
         <Text>Add new bursary</Text>
 
         <View className="form space-y-2">
-            <Text className="text-gray-700 ml-4">Bursary name</Text>
-            <TextInput 
-              className="p-4 bg-gray-100 text-gray-700 rounded-2xl mb-3"
-              placeholder="Enter bursary name" 
-            />
-            <Text className="text-gray-700 ml-4">Bursor</Text>
-            <TextInput 
-              className="p-4 bg-gray-100 text-gray-700 rounded-2xl"
-              secureTextEntry
-              placeholder="Enter bursor name"
-            />
-            <Text className="text-gray-700 ml-4">Description</Text>
-            <TextInput 
-              className="p-4 bg-gray-100 text-gray-700 rounded-2xl"
-              secureTextEntry
-              placeholder="What's covered,requirements etc"
-            />
-            <Text className="text-gray-700 ml-4">Date</Text>
-            <TextInput 
-              className="p-4 bg-gray-100 text-gray-700 rounded-2xl"
-              secureTextEntry
-              placeholder="Date"
-            />
-
             <TouchableOpacity 
               className="py-3 bg-yellow-400 rounded-xl" onPress={()=> navigation.navigate("Admin")}>
                 <Text 
