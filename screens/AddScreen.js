@@ -68,8 +68,14 @@ async function sendEmail(content) {
 }
 
 // add bursary to database and therefore notify students
-async function addBursary() {
-  
+async function addBursary(bursor, bName, detail, criteria, level, bDate, eDate) {
+  db.transaction((tx) => {
+    tx.executeSql('SELECT * FROM BURSARIES'),
+    [],
+    (tx, results) => {
+      
+    }
+  })
 }
 
 // right function to read spreadsheet once selected here
