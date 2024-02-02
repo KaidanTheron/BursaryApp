@@ -10,10 +10,6 @@ db.transaction((tx) => {
         [],
         (tx, results) => {
             console.log('ADMIN table created successfully.');
-            tx.executeSql(
-                'INSERT INTO ADMIN (email, password) VALUES(?, ?)',
-                ['admin@gmail.com', 'admin123']
-            );
         },
         (error) => {
             console.error('Error creating ADMIN table: ', error);
