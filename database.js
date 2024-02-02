@@ -66,6 +66,14 @@ db.transaction((tx) => {
     ['Kaidan', 'kaidan13th@gmail.com', '123', 'Computer Science', 'Bachelors']);
     tx.executeSql('INSERT INTO STUDENTS (name, email, password, criteria, level) VALUES (?, ?, ?, ?, ?)',
     ['Taku', 'kaidan13th@gmail.com', '123', 'Commerce', 'Honours']);
+
+    tx.executeSql('SELECT * FROM BURSARIES',
+    [],
+    (tx, results) => {
+        for (let i = 0; i < results.rows.length; i++) {
+            console.log(results.rows.item(i).bursor);
+        }
+    });
 });
 
 export { db };

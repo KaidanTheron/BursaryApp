@@ -1,11 +1,14 @@
 import { View, Text, TouchableOpacity, Image, TextInput } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import back from 'react-native-vector-icons/AntDesign'
 import { themeColors } from '../theme'
 import { useNavigation } from '@react-navigation/native'
 import { db } from '../database'
-import FilePickerComponent from '../FilePickerComponent'
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system'
+import * as XLSX from 'xlsx'
+
 // import * as Network from 'expo-network'
 
 // const student = {
@@ -21,6 +24,16 @@ import FilePickerComponent from '../FilePickerComponent'
 //   sDate:'2024-01-01',
 //   eDate: '2024-12-30'
 // }
+
+// find location of file through document picker
+const pickDocument = async () => {
+  const result = await DocumentPicker.getDocumentAsync({
+    //type: '*/*', // You can specify the MIME type of the files you want to allow
+  });
+
+  return result.assets[0].uri;
+};
+
 
 // Put bursary and student strings together as content to email
 function createContent(studentO, bursaryO) {
@@ -44,14 +57,14 @@ function createStudentStringObject(student) {
 // Format bursary details, ready to send
 function createBursaryStringObject(bursary) {
   return {
-    content: `<h3>${bursary.bName} offered by ${bursary.bursor}</h3>\n
-    Criteria: ${bursary.criteria}\n
-    Level: ${bursary.level}\n
+    content: `<h3>${bursary.bName} offered by ${bursary.bursor}</h3><br>
+    Criteria: ${bursary.criteria}<br>
+    Level: ${bursary.level}<br>
     
-    << Additional Information >>\n
-    ${bursary.detail}\n\n
+    << Additional Information >><br>
+    ${bursary.detail}<br>
 
-    ${bursary.sDate.length > 0 ? `Start Date of Bursary: ${bursary.sDate}` : `Starting date not specified`}\n
+    ${bursary.sDate.length > 0 ? `Start Date of Bursary: ${bursary.sDate}` : `Starting date not specified`}<br>
     ${bursary.eDate.length > 0 ? `End Date of Bursary: ${bursary.eDate}` : `End date not specified`}`
   };
 }
@@ -79,18 +92,47 @@ async function addBursary(bursor, bName, detail, criteria, level, bDate, eDate) 
     eDate: eDate
   }
 
+  console.log(bursary);
+
   const bursaryStringObject = createBursaryStringObject(bursary);
 
   db.transaction((tx) => {
-    tx.executeSql('INSERT INTO BURSARIES (bursor, name, detail, criteria, level, BEGINDATE, ENDDATE',
+    tx.executeSql('SELECT * FROM BURSARIES',
+    [],
+    (tx, results) => {
+        for (let i = 0; i < results.rows.length; i++) {
+            console.log(results.rows.item(i).bursor);
+        }
+    });
+
+    tx.executeSql('INSERT INTO BURSARIES (bursor, name, detail, criteria, level, BEGINDATE, ENDDATE) VALUES (?, ?, ?, ?, ?, ?, ?)',
     [bursor, bName, detail, criteria, level, bDate, eDate],
+    (tx, results) => {
+      console.log('bursary added successfully');
+    },
     (error) => {
       console.log('Error inserting bursary record:\n ', error);
-    })
+    });
+
+    tx.executeSql('SELECT * FROM BURSARIES',
+    [],
+    (tx, results) => {
+        for (let i = 0; i < results.rows.length; i++) {
+            console.log(results.rows.item(i).bursor);
+        }
+    });
+
+    tx.executeSql('SELECT * FROM STUDENTS',
+    [],
+    (tx, results) => {
+        for (let i = 0; i < results.rows.length; i++) {
+            console.log(results.rows.item(i).name, ' ', results.rows.item(i).criteria, ' ', results.rows.item(i).level);
+        }
+    });
   });
 
   db.transaction((tx) => {
-    tx.executeSql('SELECT * FROM STUDENTS'),
+    tx.executeSql('SELECT * FROM STUDENTS',
     [],
     (tx, results) => {
       for (let i = 0; i < results.rows.length; i++) {
@@ -99,25 +141,37 @@ async function addBursary(bursor, bName, detail, criteria, level, bDate, eDate) 
         const sCriteria = results.rows.item(i).criteria;
         const sLevel = results.rows.item(i).level;
 
-        if (sLevel == level && sCriteria == criteria) {
-          const student = {
-            email: sEmail,
-            name: sName
-          }
+        const student = {
+          email: sEmail,
+          name: sName
+        }
+        console.log(student);
 
+        if (sLevel == level && sCriteria == criteria) {
           sendEmail(createContent(createStudentStringObject(student), bursaryStringObject));
         }
       }
     }
-  });
+  )}
+);
 }
 
 // write function to read spreadsheet once selected here
 async function readSpreadsheet() {
+  const uri = await pickDocument();
+  console.log(uri);
+  try {
 
+    // code to read xlsx file here, using uri
+
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 export default function AddScreen() {
+
+  //addBursary('TEST', 'TEST FUND', 'allowance', 'Computer Science', 'Bachelors', '2024-01-01', '2024-12-30')
   const navigation = useNavigation();
   return (
     <View className="flex-1 bg-white " >
@@ -140,7 +194,11 @@ export default function AddScreen() {
                         Verify
                 </Text>
              </TouchableOpacity>
-             <FilePickerComponent/>
+             <View>
+                <TouchableOpacity onPress={() => readSpreadsheet()}>
+                  <Text>Choose File</Text>
+                </TouchableOpacity>
+              </View>
             
           </View>
 
