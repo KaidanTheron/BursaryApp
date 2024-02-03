@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Image, TextInput } from 'react-native'
+import { View, Text, TouchableOpacity, Image, TextInput, FlatList, Button } from 'react-native'
 import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import back from 'react-native-vector-icons/AntDesign'
@@ -71,7 +71,7 @@ function createBursaryStringObject(bursary) {
 
 // perform request to NEXT server to send email using created content
 async function sendEmail(content) {
-  await fetch("http://10.0.0.107:3000/api/test", {
+  await fetch("http://10.0.0.108:3000/api/test", {
     method: 'POST',
     body: JSON.stringify(content)
   })
@@ -88,8 +88,8 @@ async function addBursary(bursor, bName, detail, criteria, level, bDate, eDate) 
     bName: bName, 
     bursor: bursor, 
     detail: detail, 
-    sDate: bDate,
-    eDate: eDate
+    sDate: String(bDate).trim(),
+    eDate: String(eDate).trim()
   }
 
   console.log(bursary);
@@ -159,17 +159,48 @@ async function addBursary(bursor, bName, detail, criteria, level, bDate, eDate) 
 // write function to read spreadsheet once selected here
 async function readSpreadsheet() {
   const uri = await pickDocument();
-  console.log(uri);
   try {
 
-    // code to read xlsx file here, using uri
+    const fileContent = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+    const workbook = XLSX.read(fileContent, { type: 'base64'});
+    const data = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+    //console.log(data[0]);
+    return data;
 
   } catch (error) {
     console.log(error);
-  }
+  };
 }
 
 export default function AddScreen() {
+
+  const [sheetJSON, setSheetJSON] = useState([]);
+  sheet = [
+    {bDate: 45292, bName: "TEST FUND", bursor: "TEST", criteria: "Computer Science", detail: "allowance", eDate: 45656}
+  ]
+  
+
+  //console.log(sheetJSON);
+
+  const getSheetJSON = () => {
+    console.log('Sheet: ', sheetJSON);
+    return sheetJSON;
+  }
+
+  const renderItem = (item) => {
+    const data = item.item;
+    console.log('Item: ', data);
+    return (<View>
+      <Text>{`Bursor: ${data.bursor}`}</Text>
+      <Text>{`Bursary Name: ${data.bName}`}</Text>
+      <Text>{`Details: ${data.detail}`}</Text>
+      <Text>{`Criteria: ${data.criteria}`}</Text>
+      <Text>{`Level: ${data.level}`}</Text>
+      <Text>{`Begin Date: ${data.bDate}`}</Text>
+      <Text>{`End Date: ${data.eDate}`}</Text>
+      <Button title='Verify' onPress={() => addBursary(data.bursor, data.bName, data.detail, data.criteria, data.level, data.bDate, data.eDate)}/>
+    </View>);
+  }
 
   //addBursary('TEST', 'TEST FUND', 'allowance', 'Computer Science', 'Bachelors', '2024-01-01', '2024-12-30')
   const navigation = useNavigation();
@@ -186,19 +217,20 @@ export default function AddScreen() {
         <Text>Add new bursary</Text>
 
         <View className="form space-y-2">
-            <TouchableOpacity 
-              className="py-3 bg-yellow-400 rounded-xl" onPress={()=> navigation.navigate("Admin")}>
-                <Text 
-                    className="text-xl font-bold text-center text-gray-700"
-                >
-                        Verify
-                </Text>
-             </TouchableOpacity>
-             <View>
-                <TouchableOpacity onPress={() => readSpreadsheet()}>
+            {sheetJSON.length == 0 ? 
+              (<View>
+                <TouchableOpacity onPress={async () => setSheetJSON(await readSpreadsheet())}>
                   <Text>Choose File</Text>
                 </TouchableOpacity>
-              </View>
+              </View>) : 
+              (<SafeAreaView>
+                <FlatList
+                  data={getSheetJSON()}
+                  //keyExtractor={(item, index) => index.toString()}
+                  renderItem={(item) => renderItem(item)}
+                />
+              </SafeAreaView>)
+            }
             
           </View>
 
