@@ -67,7 +67,7 @@ db.transaction((tx) => {
     tx.executeSql('INSERT INTO STUDENTS (name, email, password, criteria, level) VALUES (?, ?, ?, ?, ?)',
     ['Taku', 'kaidan13th@gmail.com', '123', 'Commerce', 'Honours']);
     tx.executeSql('INSERT INTO STUDENTS (name, email, password, criteria, level) VALUES (?, ?, ?, ?, ?)',
-    ['Kaidan', 'kiantheron@gmail.com', '123', 'Computer Science', 'Bachelors']);
+    ['Kaidan', 'kaidan13th@gmail.com', '123', 'Computer Science', 'Honours']);
 
     tx.executeSql('SELECT * FROM BURSARIES',
     [],

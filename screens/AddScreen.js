@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Image, TextInput, FlatList, Button } from 'react-native'
+import { View, Text, TouchableOpacity, Image, TextInput, FlatList, Button, ScrollView, Dimensions, StyleSheet } from 'react-native'
 import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import back from 'react-native-vector-icons/AntDesign'
@@ -71,7 +71,7 @@ function createBursaryStringObject(bursary) {
 
 // perform request to NEXT server to send email using created content
 async function sendEmail(content) {
-  await fetch("http://10.0.0.108:3000/api/test", {
+  await fetch("http://10.0.0.111:3000/api/test", {
     method: 'POST',
     body: JSON.stringify(content)
   })
@@ -190,15 +190,18 @@ export default function AddScreen() {
   const renderItem = (item) => {
     const data = item.item;
     console.log('Item: ', data);
-    return (<View>
-      <Text>{`Bursor: ${data.bursor}`}</Text>
-      <Text>{`Bursary Name: ${data.bName}`}</Text>
-      <Text>{`Details: ${data.detail}`}</Text>
-      <Text>{`Criteria: ${data.criteria}`}</Text>
-      <Text>{`Level: ${data.level}`}</Text>
-      <Text>{`Begin Date: ${data.bDate}`}</Text>
-      <Text>{`End Date: ${data.eDate}`}</Text>
+    return (
+    <View style={styles.container}>
+      <View style={styles.cardContainer}>
+      <Text style={styles.titleStyle} >{`   ${data.bursor}`}</Text>
+      <Text style={styles.textStyle}>{`   ${data.bName}`}</Text>
+      <Text style={styles.textStyle}>{`  Details: ${data.detail}`}</Text>
+      <Text style={styles.textStyle}>{`  Criteria: ${data.criteria}`}</Text>
+      <Text style={styles.textStyle}>{`  Level: ${data.level}`}</Text>
+      <Text style={styles.textStyle}>{`  Begin Date: ${data.bDate}`}</Text>
+      <Text style={styles.textStyle}>{`  End Date: ${data.eDate}`}</Text>
       <Button title='Verify' onPress={() => addBursary(data.bursor, data.bName, data.detail, data.criteria, data.level, data.bDate, data.eDate)}/>
+      </View>
     </View>);
   }
 
@@ -206,7 +209,7 @@ export default function AddScreen() {
   const navigation = useNavigation();
   return (
     <View className="flex-1 bg-white " >
-      <SafeAreaView  className="flex ">
+      <SafeAreaView  className="flex">
         <View className="flex-row justify-start">
           <TouchableOpacity  onPress={()=> navigation.goBack()}
           className="bg-yellow-400 p-2 rounded-tr-2xl rounded-bl-2xl ml-4">
@@ -214,17 +217,17 @@ export default function AddScreen() {
           </TouchableOpacity>
         </View>
         
-        <Text>Add new bursary</Text>
+        <Text className="text-xl font-bold text-center text-gray-700">Add new bursary</Text>
 
         <View className="form space-y-2">
             {sheetJSON.length == 0 ? 
               (<View>
                 <TouchableOpacity onPress={async () => setSheetJSON(await readSpreadsheet())}>
-                  <Text>Choose File</Text>
+                  <Text className="font-bold text-green-500">Choose File</Text>
                 </TouchableOpacity>
               </View>) : 
               (<SafeAreaView>
-                <FlatList
+                <FlatList className="mb-24"
                   data={getSheetJSON()}
                   //keyExtractor={(item, index) => index.toString()}
                   renderItem={(item) => renderItem(item)}
@@ -237,4 +240,58 @@ export default function AddScreen() {
         </SafeAreaView>
     </View>
   )
-}
+};
+
+const deviceWidth = Math.round(Dimensions.get('window').width);
+const offset = 40;
+const radius = 20;
+const styles = StyleSheet.create({
+  container: {
+    width: deviceWidth - 20,
+    alignItems: 'center',
+    marginTop: 25,
+  },
+  cardContainer: {
+    width: deviceWidth - offset,
+    backgroundColor: '#a29bfe',
+    height: 200,
+    borderRadius: radius,
+
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 5,
+      height: 5,
+    },
+    shadowOpacity: 0.75,
+    shadowRadius: 5,
+    elevation: 9,
+  },
+  imageStyle: {
+    height: 130,
+    width: deviceWidth - offset,
+    borderTopLeftRadius: radius,
+    borderTopRightRadius: radius,
+    opacity: 0.9,
+    alignContent: 'center',
+    alignSelf: 'center',
+  },
+  titleStyle: {
+    fontSize: 40,
+    fontWeight: '800',
+  },
+  textStyle: {
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  categoryStyle: {
+    fontWeight: '200',
+  },
+  infoStyle: {
+    marginHorizontal: 10,
+    marginVertical: 5,
+  },
+  iconLabelStyle: {
+    flexDirection: 'row',
+    marginTop: 10,
+  },
+});
